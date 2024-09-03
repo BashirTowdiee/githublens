@@ -1,0 +1,229 @@
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.title-container {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  padding: 20px;
+  border-radius: 5px 5px 0 0;
+  margin: -20px -20px 20px -20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+h1 {
+  color: white;
+  margin: 0;
+  font-size: 2.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+.github-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.github-link:hover {
+  color: #f0f0f0;
+  transform: scale(1.1);
+}
+.github-link i {
+  font-size: 2em;
+}
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+input,
+button,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+button:hover {
+  background-color: #0056b3;
+}
+#itemsList {
+  list-style-type: none;
+  padding: 0;
+}
+#itemsList li {
+  background-color: #ffffff;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+#itemsList li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.item-name {
+  font-size: 1.2em;
+  color: #007bff;
+  margin: 0;
+}
+.item-id {
+  font-size: 0.9em;
+  color: #6c757d;
+}
+.item-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+  color: #495057;
+}
+.item-date,
+.item-size,
+.item-workflow {
+  background-color: #e9ecef;
+  padding: 3px 8px;
+  margin-left: 5px;
+  border-radius: 12px;
+  display: inline-block;
+}
+.token-input {
+  -webkit-text-security: disc;
+  -moz-text-security: disc;
+  text-security: disc;
+}
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.pagination button {
+  width: auto;
+  padding: 10px 20px;
+}
+.pagination button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+.filters {
+  background-color: #f8f9fa;
+  padding: 20px;
+  padding-top: 5px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+.filter-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+.filter-group > * {
+  flex: 1;
+}
+.filter-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+}
+.form-group {
+  margin-bottom: 5px;
+}
+.optional-label {
+  font-size: 0.8em;
+  color: #6c757d;
+  margin-left: 5px;
+}
+.item-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+}
+.download-link,
+.delete-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.download-link {
+  background-color: #28a745;
+}
+.download-link:hover {
+  background-color: #218838;
+}
+.delete-link {
+  background-color: #dc3545;
+}
+.delete-link:hover {
+  background-color: #c82333;
+}
+.loading-indicator {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid #fff;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+.loading .button-text {
+  visibility: hidden;
+}
+.loading .loading-indicator {
+  display: block;
+}
+.view-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.view-selector button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  width: auto;
+}
+.view-selector button.active {
+  background-color: #0056b3;
+}
