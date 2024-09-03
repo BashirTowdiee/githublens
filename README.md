@@ -1,4 +1,4 @@
-# GitHub Artifacts Viewer
+# GitHubLens
 
 ![GitHub Artifacts Viewer Screenshot](Screenshot.png)
 
