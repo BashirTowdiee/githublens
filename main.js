@@ -3,11 +3,11 @@ let currentPage = 1;
 let totalPages = 1;
 let owner = '';
 let repo = '';
-const perPage = 30;
+const perPage = 100; // Changed to 100 to match GitHub API's max per_page
 let allItems = [];
-let filteredItems = [];
 let workflows = new Set();
 let currentView = 'artifacts';
+let isPrivateRepo = false;
 
 function setView(view) {
   currentView = view;
@@ -24,15 +24,33 @@ function handleGetItemsClick() {
   repo = document.getElementById('repo').value;
   const token = document.getElementById('token').value;
 
-  if (!owner || !repo || !token) {
-    alert(
-      'Please enter GitHub username, repository name, and personal access token.',
-    );
+  if (!owner || !repo) {
+    alert('Please enter GitHub username and repository name.');
     return;
   }
 
   globalToken = token;
-  getItems(1);
+  checkRepoPrivacy();
+}
+
+async function checkRepoPrivacy() {
+  try {
+    const headers = {
+      Accept: 'application/vnd.github.v3+json',
+    };
+    if (globalToken) {
+      headers.Authorization = `token ${globalToken}`;
+    }
+
+    const response = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}`,
+      { headers },
+    );
+    isPrivateRepo = response.data.private;
+    getItems(1);
+  } catch (error) {
+    handleError(error);
+  }
 }
 
 async function getItems(page) {
@@ -43,8 +61,10 @@ async function getItems(page) {
   try {
     const headers = {
       Accept: 'application/vnd.github.v3+json',
-      Authorization: `token ${globalToken}`,
     };
+    if (globalToken) {
+      headers.Authorization = `token ${globalToken}`;
+    }
 
     const endpoint =
       currentView === 'artifacts'
@@ -54,8 +74,8 @@ async function getItems(page) {
     const response = await axios.get(endpoint, {
       headers: headers,
       params: {
-        per_page: 100,
-        page: 1,
+        per_page: perPage,
+        page: page,
       },
     });
 
@@ -63,6 +83,9 @@ async function getItems(page) {
       currentView === 'artifacts'
         ? response.data.artifacts
         : response.data.actions_caches;
+
+    totalPages = Math.ceil(response.data.total_count / perPage);
+
     workflows.clear();
     allItems.forEach((item) =>
       workflows.add(
@@ -71,7 +94,6 @@ async function getItems(page) {
     );
     updateWorkflowFilter();
 
-    filteredItems = [...allItems];
     displayItems();
   } catch (error) {
     handleError(error);
@@ -79,63 +101,60 @@ async function getItems(page) {
 }
 
 function displayItems() {
-  const startIndex = (currentPage - 1) * perPage;
-  const endIndex = startIndex + perPage;
-  const itemsToDisplay = filteredItems.slice(startIndex, endIndex);
-
   const itemsList = document.getElementById('itemsList');
-  itemsList.innerHTML = itemsToDisplay
-    .map((item) => createItemHTML(item))
-    .join('');
+  itemsList.innerHTML = allItems.map((item) => createItemHTML(item)).join('');
 
   updatePagination();
 }
 
 function createItemHTML(item) {
   const isArtifact = currentView === 'artifacts';
+  const deleteButtonDisabled = !isPrivateRepo ? 'disabled' : '';
+  const deleteButtonTitle = !isPrivateRepo
+    ? 'Delete is only available for private repositories'
+    : '';
+
   return `
-        <li>
-            <div class="item-header">
-                <h3 class="item-name">${isArtifact ? item.name : item.key}</h3>
-                <span class="item-id">ID: ${item.id}</span>
-            </div>
-            <div class="item-info">
-                <span class="item-date">${
-                  isArtifact ? 'Created' : 'Last accessed'
-                }: ${new Date(
+    <li>
+      <div class="item-header">
+        <h3 class="item-name">${isArtifact ? item.name : item.key}</h3>
+        <span class="item-id">ID: ${item.id}</span>
+      </div>
+      <div class="item-info">
+        <span class="item-date">${
+          isArtifact ? 'Created' : 'Last accessed'
+        }: ${new Date(
     isArtifact ? item.created_at : item.last_accessed_at,
   ).toLocaleString()}</span>
-                <span class="item-size">Size: ${(
-                  item.size_in_bytes / 1024
-                ).toFixed(2)} KB</span>
-                <span class="item-workflow">${
-                  isArtifact ? 'Workflow Branch' : 'Branch'
-                }: ${
-    isArtifact ? item.workflow_run.head_branch : item.ref
-  }</span>
-            </div>
-            <div class="item-actions">
-                ${
-                  isArtifact
-                    ? `
-                <button class="download-link" onclick="downloadArtifact(${item.id}, this)">
-                    <span class="button-text">Download</span>
-                    <span class="loading-indicator"></span>
-                </button>
-                `
-                    : ''
-                }
-                <button class="delete-link" onclick="${
-                  isArtifact
-                    ? `deleteArtifact(${item.id}, this)`
-                    : `deleteCache('${item.key}', this)`
-                }">
-                    <span class="button-text">Delete</span>
-                    <span class="loading-indicator"></span>
-                </button>
-            </div>
-        </li>
-    `;
+        <span class="item-size">Size: ${(item.size_in_bytes / 1024).toFixed(
+          2,
+        )} KB</span>
+        <span class="item-workflow">${
+          isArtifact ? 'Workflow Branch' : 'Branch'
+        }: ${isArtifact ? item.workflow_run.head_branch : item.ref}</span>
+      </div>
+      <div class="item-actions">
+        ${
+          isArtifact
+            ? `
+        <button class="download-link" onclick="downloadArtifact(${item.id}, this)">
+          <span class="button-text">Download</span>
+          <span class="loading-indicator"></span>
+        </button>
+        `
+            : ''
+        }
+        <button class="delete-link" onclick="${
+          isArtifact
+            ? `deleteArtifact(${item.id}, this)`
+            : `deleteCache('${item.key}', this)`
+        }" ${deleteButtonDisabled} title="${deleteButtonTitle}">
+          <span class="button-text">Delete</span>
+          <span class="loading-indicator"></span>
+        </button>
+      </div>
+    </li>
+  `;
 }
 
 function updatePagination() {
@@ -143,10 +162,12 @@ function updatePagination() {
   const nextButton = document.getElementById('nextButton');
   const pageInfo = document.getElementById('pageInfo');
 
-  totalPages = Math.ceil(filteredItems.length / perPage);
   prevButton.disabled = currentPage === 1;
   nextButton.disabled = currentPage === totalPages;
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+  prevButton.onclick = () => getItems(currentPage - 1);
+  nextButton.onclick = () => getItems(currentPage + 1);
 }
 
 function updateWorkflowFilter() {
@@ -161,55 +182,8 @@ function updateWorkflowFilter() {
 }
 
 function applyFilters() {
-  const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
-  const idFilter = document.getElementById('idFilter').value;
-  const startDate = document.getElementById('startDate').value;
-  const endDate = document.getElementById('endDate').value;
-  const workflowFilter = document.getElementById('workflowFilter').value;
-
-  filteredItems = allItems.filter((item) => {
-    const isArtifact = currentView === 'artifacts';
-    let match = true;
-
-    if (nameFilter) {
-      match =
-        match &&
-        (isArtifact
-          ? item.name.toLowerCase().includes(nameFilter)
-          : item.key.toLowerCase().includes(nameFilter));
-    }
-
-    if (idFilter) {
-      match = match && item.id.toString() === idFilter;
-    }
-
-    if (startDate) {
-      match =
-        match &&
-        new Date(isArtifact ? item.created_at : item.last_accessed_at) >=
-          new Date(startDate);
-    }
-
-    if (endDate) {
-      match =
-        match &&
-        new Date(isArtifact ? item.created_at : item.last_accessed_at) <=
-          new Date(endDate);
-    }
-
-    if (workflowFilter) {
-      match =
-        match &&
-        (isArtifact
-          ? item.workflow_run.head_branch === workflowFilter
-          : item.ref === workflowFilter);
-    }
-
-    return match;
-  });
-
   currentPage = 1;
-  displayItems();
+  getItems(currentPage);
 }
 
 async function downloadArtifact(artifactId, button) {
@@ -308,7 +282,7 @@ function handleError(error) {
       "Repository not found or you don't have access. If it's a private repository, please provide a valid access token.";
   } else if (error.response && error.response.status === 403) {
     itemsList.innerHTML =
-      "You don't have permission to perform this action. Make sure your token has the necessary permissions.";
+      "You don't have permission to perform this action. If this is a private repository, make sure to provide a valid access token with the necessary permissions.";
   } else {
     itemsList.innerHTML = `Error: ${
       error.response ? error.response.data.message : error.message

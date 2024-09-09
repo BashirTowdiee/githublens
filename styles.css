@@ -175,6 +175,10 @@ button:hover {
   position: relative;
   overflow: hidden;
 }
+.delete-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .download-link {
   background-color: #28a745;
 }
